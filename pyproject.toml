@@ -1,18 +1,30 @@
 [build-system]
-requires = ["maturin>=1.11,<2.0"]
-build-backend = "maturin"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "deepyaml"
-requires-python = ">=3.8"
+version = "0.1.0"
+description = "Fast, antlr4-free hierarchical config loader with OmegaConf-compatible ${...} interpolation"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Deepyaman Datta" }]
 classifiers = [
-    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dynamic = ["version"]
+dependencies = ["PyYAML>=5.1"]
 
-[dependency-groups]
-dev = [
-    "maturin>=1.11.5",
-]
+[project.optional-dependencies]
+# Optional opt-in YAML 1.2 backend (Rust/saphyr); pure-Python install needs nothing extra.
+yaml12 = ["py-yaml12"]
+kedro = ["kedro>=0.19"]
+dev = ["pytest>=7", "kedro>=0.19", "omegaconf>=2.3"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/deepyaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
