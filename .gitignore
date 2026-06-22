@@ -70,3 +70,9 @@ docs/_build/
 
 # Pyenv
 .python-version
+
+# Benchmark/spike: generated + heavy artifacts (regenerable via gen_configs.py / kedro new / npm)
+bench/node_modules/
+bench/configs/
+bench/spaceflights/
+bench/package*.json
