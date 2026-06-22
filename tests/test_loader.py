@@ -72,10 +72,22 @@ def test_runtime_params_resolver(make_conf):
     assert ConfigLoader(src, runtime_params={"bucket": "prod"})["catalog"]["ds"]["bucket"] == "prod"
 
 
-def test_missing_config_raises(make_conf):
-    src = make_conf({"base": {"parameters.yml": "a: 1\n"}})
+def test_missing_files_raises_in_standard_two_env_setup(make_conf):
+    # matches OmegaConfigLoader: a non-globals key with no files (base != run_env) -> raises
+    src = make_conf({"base": {"parameters.yml": "a: 1\n"}, "local": {}})
     with pytest.raises(MissingConfigError):
         ConfigLoader(src)["catalog"]
+
+
+def test_missing_files_single_env_returns_empty(make_conf):
+    # when run_env == base_env (single env), OmegaConfigLoader short-circuits to {}
+    src = make_conf({"base": {"parameters.yml": "a: 1\n"}})
+    assert ConfigLoader(src, run_env="base")["catalog"] == {}
+
+
+def test_missing_conf_directory_raises(tmp_path):
+    with pytest.raises(MissingConfigError):
+        ConfigLoader(tmp_path / "does_not_exist")["catalog"]
 
 
 def test_unknown_key_raises_keyerror(make_conf):

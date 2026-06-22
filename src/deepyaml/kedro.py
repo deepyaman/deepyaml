@@ -10,12 +10,14 @@ from __future__ import annotations
 from typing import Any, KeysView, Mapping
 
 try:
+    from kedro.config import MissingConfigException
     from kedro.config.abstract_config import AbstractConfigLoader
 except ImportError as exc:  # pragma: no cover
     raise ImportError(
         "DeepYAMLConfigLoader requires Kedro. Install it with `pip install deepyaml[kedro]`."
     ) from exc
 
+from .errors import MissingConfigError
 from .loader import ConfigLoader
 
 
@@ -53,7 +55,12 @@ class DeepYAMLConfigLoader(AbstractConfigLoader):
         self.config_patterns = self._loader.config_patterns
 
     def __getitem__(self, key: str) -> dict:
-        return self._loader[key]
+        # Translate to Kedro's exception so the framework's `except MissingConfigException`
+        # (optional parameters/credentials) keeps working.
+        try:
+            return self._loader[key]
+        except MissingConfigError as exc:
+            raise MissingConfigException(str(exc)) from exc
 
     def keys(self) -> KeysView:
         return KeysView(self.config_patterns)

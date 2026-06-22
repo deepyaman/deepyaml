@@ -137,12 +137,10 @@ class ConfigLoader:
 
     def _load_key(self, key: str, *, resolvers: dict) -> dict:
         per_env: list[dict] = []
-        found_any = False
         for env in self.envs:
             files = self._find_files(env, key)
             if not files:
                 continue
-            found_any = True
             config_per_file = {path: (parse_file(path) or {}) for path in files}
             self._check_duplicates(config_per_file)
             merged = merge_dicts(*config_per_file.values())
@@ -152,9 +150,12 @@ class ConfigLoader:
             else:
                 resolved = resolve_tree(merged, resolvers)
                 per_env.append({k: v for k, v in resolved.items() if not k.startswith("_")})
-        if not found_any and key != "globals":
+        # OmegaConfigLoader raises for a non-globals key with no files across envs (the
+        # framework catches it for optional parameters/credentials). It only short-circuits
+        # to {} when run_env == base_env (a single env), so mirror that.
+        if not per_env and key != "globals" and len(self.envs) > 1:
             raise MissingConfigError(
-                f"No config files found in {self.conf_source} for key '{key}' "
+                f"No YAML or JSON files found for key '{key}' in {self.conf_source} "
                 f"matching {self.config_patterns[key]}"
             )
         return merge_dicts(*per_env) if per_env else {}
@@ -163,6 +164,11 @@ class ConfigLoader:
         if key not in self.config_patterns:
             raise KeyError(
                 f"No config patterns were found for '{key}' in your config loader"
+            )
+        if not (self.conf_source / self.base_env).is_dir():
+            raise MissingConfigError(
+                f"Config path '{self.conf_source / self.base_env}' does not exist "
+                f"or is not a directory."
             )
         if key == "globals":
             return self._load_globals()

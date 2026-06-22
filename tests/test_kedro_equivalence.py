@@ -50,6 +50,28 @@ def test_matches_omegaconfigloader(conf_source, key, monkeypatch):
     assert dyl[key] == ocl[key]
 
 
+def test_missing_key_both_raise_kedro_exception(make_conf):
+    # both raise MissingConfigException for a non-globals key with no files (the framework
+    # catches it for optional parameters/credentials). local/ created so it's missing *files*.
+    from kedro.config import MissingConfigException
+
+    src = make_conf({"base": {"parameters.yml": "a: 1\n"}, "local": {}})
+    ocl = OmegaConfigLoader(conf_source=str(src), base_env="base", default_run_env="local")
+    dyl = DeepYAMLConfigLoader(conf_source=str(src))
+    with pytest.raises(MissingConfigException):
+        ocl["catalog"]
+    with pytest.raises(MissingConfigException):
+        dyl["catalog"]
+
+
+def test_missing_conf_dir_raises_kedro_exception(tmp_path):
+    from kedro.config import MissingConfigException
+
+    dyl = DeepYAMLConfigLoader(conf_source=str(tmp_path / "nope"))
+    with pytest.raises(MissingConfigException):
+        dyl["catalog"]
+
+
 def test_adapter_is_kedro_config_loader(conf_source):
     from kedro.config.abstract_config import AbstractConfigLoader
 
