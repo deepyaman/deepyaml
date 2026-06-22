@@ -19,7 +19,8 @@ dependencies = ["PyYAML>=5.1"]
 
 [project.optional-dependencies]
 # Optional opt-in YAML 1.2 backend (Rust/saphyr); pure-Python install needs nothing extra.
-yaml12 = ["py-yaml12"]
+# py-yaml12 requires Python >=3.10, so guard it to keep the core installable on 3.9.
+yaml12 = ["py-yaml12; python_version >= '3.10'"]
 kedro = ["kedro>=0.19"]
 dev = ["pytest>=7", "kedro>=0.19", "omegaconf>=2.3"]
 
