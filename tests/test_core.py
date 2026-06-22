@@ -26,6 +26,21 @@ def test_merge_later_wins_and_replaces_lists():
     assert d.merge(a, b) == {"x": {"a": 1, "b": 3}, "l": [9]}
 
 
+def test_merge_does_not_mutate_inputs():
+    a = {"x": {"a": 1}}
+    b = {"x": {"b": 2}}
+    result = d.merge(a, b)
+    result["x"]["a"] = 999
+    assert a == {"x": {"a": 1}}  # unchanged
+    assert b == {"x": {"b": 2}}  # unchanged
+
+
+def test_resolve_uses_builtin_resolvers_by_default(monkeypatch):
+    monkeypatch.setenv("DEEPYAML_Y", "ok")
+    # no resolvers passed -> oc.env still works
+    assert d.resolve(d.loads("a: ${oc.env:DEEPYAML_Y}")) == {"a": "ok"}
+
+
 def test_interpolation_reference_and_concat():
     cfg = d.loads("base: data\nlayer: raw\npath: ${base}/${layer}/f.csv")
     assert d.resolve(cfg)["path"] == "data/raw/f.csv"

@@ -17,7 +17,7 @@ import re
 from typing import Any
 
 from .errors import InterpolationError
-from .resolvers import ResolverMap
+from .resolvers import ResolverMap, build_resolver_map
 
 # One non-nested ${...}. Nested interpolation (${a.${b}}) is intentionally unsupported in v1.
 _INTERP = re.compile(r"(?<!\\)\$\{([^}]*)\}")
@@ -73,8 +73,7 @@ def _resolve_str(value: str, *, root: Any, resolvers: ResolverMap, seen: frozens
     match = _INTERP.fullmatch(value)
     if match:
         # whole string is a single interpolation -> preserve the resolved value's type
-        resolved = _eval(match.group(1), root=root, resolvers=resolvers, seen=seen)
-        return _unescape(resolved) if isinstance(resolved, str) else resolved
+        return _eval(match.group(1), root=root, resolvers=resolvers, seen=seen)
     # otherwise substitute each occurrence as a string (concatenation)
     out = _INTERP.sub(
         lambda m: str(_eval(m.group(1), root=root, resolvers=resolvers, seen=seen)),
@@ -101,10 +100,12 @@ def resolve(data: Any, resolvers: ResolverMap | None = None, *, root: Any = None
     """Return ``data`` with all ``${...}`` interpolations eagerly resolved.
 
     References (``${a.b}``) are looked up against ``root`` (defaults to ``data`` itself).
+    ``resolvers`` defaults to the built-in + registered resolvers (so ``${oc.env:...}``
+    works out of the box); pass ``{}`` to disable resolver calls.
     """
     return _resolve(
         data,
         root=data if root is None else root,
-        resolvers=resolvers or {},
+        resolvers=build_resolver_map() if resolvers is None else resolvers,
         seen=frozenset(),
     )

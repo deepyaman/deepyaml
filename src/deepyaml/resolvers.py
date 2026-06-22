@@ -50,7 +50,7 @@ def _oc_env(name: str, default: Any = _SENTINEL) -> Any:
 
 
 def _builtins() -> ResolverMap:
-    return {"oc.env": _oc_env, "env": _oc_env}
+    return {"oc.env": _oc_env}
 
 
 def build_resolver_map(extra: ResolverMap | None = None) -> ResolverMap:

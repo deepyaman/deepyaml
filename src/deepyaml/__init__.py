@@ -21,7 +21,7 @@ from .errors import (
     MissingConfigError,
 )
 from .interpolation import resolve
-from .resolvers import has_resolver, register_resolver
+from .resolvers import build_resolver_map, has_resolver, register_resolver
 
 __version__ = "0.1.0"
 
@@ -44,6 +44,7 @@ __all__ = [
     "resolve",
     "register_format",
     "register_resolver",
+    "build_resolver_map",
     "has_resolver",
     "DeepYAMLError",
     "InterpolationError",
