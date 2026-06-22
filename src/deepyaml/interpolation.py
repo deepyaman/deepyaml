@@ -24,6 +24,23 @@ _INTERP = re.compile(r"(?<!\\)\$\{([^}]*)\}")
 _ESCAPED = re.compile(r"\\(\$\{[^}]*\})")
 
 
+def _coerce_arg(arg: str) -> Any:
+    """Type-infer a literal resolver argument (mirrors OmegaConf's typed literals)."""
+    if len(arg) >= 2 and arg[0] in "'\"" and arg[-1] == arg[0]:
+        return arg[1:-1]  # quoted -> string
+    low = arg.lower()
+    if low in ("true", "false"):
+        return low == "true"
+    if low in ("null", "none", "~"):
+        return None
+    for cast in (int, float):
+        try:
+            return cast(arg)
+        except ValueError:
+            pass
+    return arg
+
+
 def _select(root: Any, dotted: str) -> Any:
     node = root
     for part in dotted.split("."):
@@ -48,7 +65,7 @@ def _eval(expr: str, *, root: Any, resolvers: ResolverMap, seen: frozenset) -> A
         fn = resolvers[name]
     except KeyError:
         raise InterpolationError(f"unknown resolver '{name}' in '${{{expr}}}'") from None
-    args = [a.strip() for a in rest.split(",")] if rest else []
+    args = [_coerce_arg(a.strip()) for a in rest.split(",")] if rest else []
     return fn(*args)
 
 
