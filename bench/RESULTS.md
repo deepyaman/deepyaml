@@ -171,3 +171,23 @@ maintainable by Kedro's (Python) maintainers.
 **The one valid reason left for Rust is the explicit goal of learning to build Rust-backed
 Python packages.** That's a legitimate driver on its own — it just shouldn't be sold as a
 performance or WASM necessity, and a WASM target would require Pyodide/emscripten wheel builds.
+
+## 5. The implemented prototype (`deepyaml`) — measured
+
+The pure-Python library now exists (`src/deepyaml`). End-to-end via its Kedro adapter
+(`DeepYAMLConfigLoader`), apples-to-apples with `OmegaConfigLoader` over the same config trees —
+both load `catalog` + `parameters`, including globals loading, env layering, and duplicate checks:
+
+| size (datasets) | OmegaConfigLoader | **DeepYAMLConfigLoader** | speedup |
+|---|---:|---:|---:|
+| light  (20, no interp) |   10.4 ms |  **0.78 ms** | 13.3× |
+| small  (20, interp)    |   41.9 ms |  **1.52 ms** | 27.6× |
+| medium (200, interp)   |  360.8 ms | **10.9 ms** | 33.0× |
+| large  (2000, interp)  | 3574.6 ms | **105 ms** | 33.9× |
+
+(Lower than the bare `baseline_py` 40–50× because the real loader does more real work — globals,
+adapter, two pattern groups. Still 13–34× end-to-end.) **Verified byte-identical** to
+`OmegaConfigLoader` output on the generated interpolation-heavy configs and the spaceflights
+starter (`globals`/`catalog`/`parameters`/`credentials`), with a 27-test suite incl. an
+equivalence check. Reproduce: `PYTHONPATH=../src uv run --no-project --with kedro --with pyyaml
+python bench_omegaconf.py`.

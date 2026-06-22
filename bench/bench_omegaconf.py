@@ -88,36 +88,36 @@ def bench_omegaconf_phases(size: str) -> dict[str, float]:
     }
 
 
-def bench_baseline(size: str) -> float:
-    from baseline_py import load_config
+def bench_deepyaml(size: str) -> float:
+    """The real deepyaml loader, end-to-end via its Kedro adapter (apples-to-apples)."""
+    from deepyaml.kedro import DeepYAMLConfigLoader
 
-    src = CONFIGS / size
+    src = str(CONFIGS / size)
 
     def run():
-        load_config(src, runtime_params=RUNTIME_PARAMS)
+        cl = DeepYAMLConfigLoader(conf_source=src, env="local", runtime_params=RUNTIME_PARAMS)
+        _ = cl["catalog"]
+        try:
+            _ = cl["parameters"]
+        except Exception:
+            pass
 
     return timeit(run)
 
 
 def main() -> None:
-    print(f"{'size':8s} {'kedro(ms)':>11s} {'parse':>8s} {'merge':>8s} {'resolve':>9s} "
-          f"{'oc-total':>9s} {'pybase(ms)':>11s}")
-    print("-" * 72)
-    rows = []
+    print(f"{'size':8s} {'kedro(ms)':>11s} {'deepyaml(ms)':>13s} {'speedup':>8s}   "
+          f"[oc phases: {'parse':>7s} {'merge':>7s} {'resolve':>8s}]")
+    print("-" * 78)
     for size in SIZES:
         if not (CONFIGS / size).exists():
             continue
         kedro_ms = bench_kedro(size)
+        dy_ms = bench_deepyaml(size)
         phases = bench_omegaconf_phases(size)
-        oc_total = sum(phases.values())
-        try:
-            py_ms = bench_baseline(size)
-        except Exception as e:  # baseline may not cover every case yet
-            py_ms = float("nan")
-            print(f"  (baseline failed on {size}: {e})")
-        rows.append((size, kedro_ms, phases, oc_total, py_ms))
-        print(f"{size:8s} {kedro_ms:11.2f} {phases['parse']:8.2f} {phases['merge']:8.2f} "
-              f"{phases['resolve']:9.2f} {oc_total:9.2f} {py_ms:11.2f}")
+        speedup = kedro_ms / dy_ms if dy_ms else float("nan")
+        print(f"{size:8s} {kedro_ms:11.2f} {dy_ms:13.2f} {speedup:7.1f}x   "
+              f"[{'':10s} {phases['parse']:7.1f} {phases['merge']:7.1f} {phases['resolve']:8.1f}]")
 
 
 if __name__ == "__main__":
