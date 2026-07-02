@@ -121,8 +121,8 @@ uv run pytest
 uv run ruff check . && uv run ruff format --check .
 ```
 
-The equivalence and adapter suites require the `dev` group's Kedro/OmegaConf
-and skip cleanly without them.
+The equivalence, adapter, and `kedro run` integration suites require the
+`dev` group's Kedro/OmegaConf and skip cleanly without them.
 
 ## License
 
