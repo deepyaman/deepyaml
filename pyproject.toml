@@ -27,12 +27,16 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+[project.optional-dependencies]
+kedro = ["kedro>=0.19"]
+
 [project.urls]
 Homepage = "https://github.com/deepyaman/deepyaml"
 Issues = "https://github.com/deepyaman/deepyaml/issues"
 
 [dependency-groups]
 dev = [
+    "kedro>=0.19",
     "pytest>=8",
     "ruff>=0.9",
 ]
