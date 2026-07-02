@@ -234,6 +234,7 @@ kedro = [
 [package.dev-dependencies]
 dev = [
     { name = "kedro" },
+    { name = "omegaconf" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -248,6 +249,7 @@ provides-extras = ["kedro"]
 [package.metadata.requires-dev]
 dev = [
     { name = "kedro", specifier = ">=0.19" },
+    { name = "omegaconf", specifier = ">=2.3" },
     { name = "pytest", specifier = ">=8" },
     { name = "ruff", specifier = ">=0.9" },
 ]
