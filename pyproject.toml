@@ -9,7 +9,7 @@ authors = [
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["pyyaml>=6"]
 keywords = ["yaml", "config", "configuration", "omegaconf", "kedro", "interpolation"]
 classifiers = [
     "Development Status :: 4 - Beta",
