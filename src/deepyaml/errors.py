@@ -7,3 +7,7 @@ class DeepYAMLError(Exception):
 
 class ParseError(DeepYAMLError, ValueError):
     """Raised when a config file cannot be parsed."""
+
+
+class InterpolationError(DeepYAMLError, ValueError):
+    """Raised when a ``${...}`` interpolation cannot be resolved."""
