@@ -1,0 +1,14 @@
+[project]
+name = "deepyaml"
+version = "0.1.0"
+description = "Fast, antlr4-free hierarchical config loader with OmegaConf-compatible ${...} interpolation"
+readme = "README.md"
+authors = [
+    { name = "Deepyaman Datta", email = "deepyaman.datta@utexas.edu" }
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.11.2,<0.12.0"]
+build-backend = "uv_build"
