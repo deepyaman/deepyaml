@@ -55,20 +55,22 @@ class DeepYAMLConfigLoader(AbstractConfigLoader):
         merge_strategy: dict[str, str] | None = None,
         ignore_hidden: bool = True,
     ) -> None:
-        super().__init__(
-            conf_source=str(conf_source), env=env, runtime_params=runtime_params
-        )
         self.base_env = base_env or ""
         self.default_run_env = default_run_env or ""
+        # Built before ``super().__init__``, which assigns ``runtime_params``
+        # through the property below.
         self._loader = ConfigLoader(
             conf_source,
             base_env=self.base_env,
             run_env=env or self.default_run_env,
             config_patterns=config_patterns,
-            runtime_params=self.runtime_params,
+            runtime_params=runtime_params,
             custom_resolvers=custom_resolvers,
             merge_strategy=merge_strategy,
             ignore_hidden=ignore_hidden,
+        )
+        super().__init__(
+            conf_source=str(conf_source), env=env, runtime_params=runtime_params
         )
         self.config_patterns = self._loader.config_patterns
         # Like OmegaConfigLoader, load globals eagerly; missing config dirs
@@ -77,6 +79,26 @@ class DeepYAMLConfigLoader(AbstractConfigLoader):
             _ = self._loader.globals
         except MissingConfigError:
             self._loader.globals = {}
+
+    # ``OmegaConfigLoader`` keeps these as plain attributes and reads them when
+    # a key is loaded, so reassigning one after construction takes effect.
+    # Proxying keeps the wrapped loader as the single source of truth.
+
+    @property
+    def runtime_params(self) -> dict[str, Any]:
+        return self._loader.runtime_params
+
+    @runtime_params.setter
+    def runtime_params(self, value: dict[str, Any] | None) -> None:
+        self._loader.runtime_params = value or {}
+
+    @property
+    def merge_strategy(self) -> dict[str, str]:
+        return self._loader.merge_strategy
+
+    @merge_strategy.setter
+    def merge_strategy(self, value: dict[str, str] | None) -> None:
+        self._loader.merge_strategy = value or {}
 
     def __getitem__(self, key: str) -> dict[str, Any]:
         # Explicitly set values (``loader["catalog"] = {...}``) win, matching

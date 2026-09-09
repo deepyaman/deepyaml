@@ -107,6 +107,27 @@ def test_runtime_params_reach_parameters(conf_source):
     assert loader["parameters"] == {"test_size": 0.5}
 
 
+def test_runtime_params_reassigned_after_construction(conf_source):
+    # OmegaConfigLoader reads runtime_params at load time; Kedro's own asv
+    # benchmarks reassign it on a live loader.
+    loader = make_loader(conf_source)
+    loader.runtime_params = {"extra": 1}
+    assert loader["parameters"] == {"test_size": 0.2, "extra": 1}
+
+
+def test_merge_strategy_reassigned_after_construction(make_conf):
+    src = make_conf(
+        {
+            "base": {"catalog.yml": "ds:\n  type: A\n  filepath: base.csv\n"},
+            "local": {"catalog.yml": "ds:\n  filepath: local.csv\n"},
+        }
+    )
+    loader = make_loader(src)
+    assert loader["catalog"] == {"ds": {"filepath": "local.csv"}}
+    loader.merge_strategy = {"catalog": "soft"}
+    assert loader["catalog"] == {"ds": {"type": "A", "filepath": "local.csv"}}
+
+
 def test_keys_reflect_config_patterns(conf_source):
     assert set(make_loader(conf_source).keys()) == {
         "catalog",
