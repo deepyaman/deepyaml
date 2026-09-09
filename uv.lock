@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "kedro"
-version = "1.5.0"
+version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -373,9 +373,9 @@ dependencies = [
     { name = "tomli-w" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/da/fa/8348b15a20a972fa3bd6e40ac8b2ac60238f848b9428e61bb99fd04dae06/kedro-1.5.0.tar.gz", hash = "sha256:dc2d560279689fd5548abf620e330a1c4e7e4603e9543de8775efcd4e9c149b4", size = 188456, upload-time = "2026-06-29T14:53:19.76Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/6e/4e8e81827fc3ad59d225b5595d3b6d066d6aed100777aff2220cb89b0f7a/kedro-1.6.0.tar.gz", hash = "sha256:038fb0b8fc8eea9a4aecbf5cd2818c3bf0452198e29b80a194704528eb29ea0a", size = 209535, upload-time = "2026-09-09T09:14:51.56Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/ce/a2aeefa571722f59d86d2804e38c8c81fcf1642f2b43b0673ac30120af28/kedro-1.5.0-py3-none-any.whl", hash = "sha256:bfec422b88d069135c2f5d7df2e30ce98cd0d1caed62d69497225d3536be8fd9", size = 224572, upload-time = "2026-06-29T14:53:18.227Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/7d/a38c8060f1b6d93ff098a8d2bd0b5d2971389b146d20c734d7e46e12ce1d/kedro-1.6.0-py3-none-any.whl", hash = "sha256:d6b76e8ab7e0c369461d158ffc5f02ddb2d3637db70bb8cd9be6664d4c13f3a2", size = 246991, upload-time = "2026-09-09T09:14:49.923Z" },
 ]
 
 [[package]]

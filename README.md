@@ -24,10 +24,10 @@ verified identical; see [bench/RESULTS.md](bench/RESULTS.md)):
 
 | scenario | datasets | interpolation | OmegaConfigLoader | deepyaml | speedup |
 |----------|---------:|---------------|------------------:|---------:|--------:|
-| light    |       20 | none          |           10.5 ms |   0.9 ms |     12x |
-| small    |       20 | heavy         |           44.4 ms |   1.9 ms |     24x |
-| medium   |      200 | heavy         |          357.4 ms |  11.4 ms |     31x |
-| large    |    2,000 | heavy         |          3,506 ms |   118 ms |     30x |
+| light    |       20 | none          |           11.0 ms |   1.0 ms |     11x |
+| small    |       20 | heavy         |           42.6 ms |   1.7 ms |     25x |
+| medium   |      200 | heavy         |          361.8 ms |  11.5 ms |     31x |
+| large    |    2,000 | heavy         |          3,535 ms |   120 ms |     30x |
 
 ## Installation
 

@@ -6,13 +6,13 @@ median of 5 runs, outputs verified identical before timing.
 
 | scenario | datasets | interpolation | OmegaConfigLoader | DeepYAMLConfigLoader | speedup |
 |----------|---------:|---------------|------------------:|---------------------:|--------:|
-| light    |       20 | none          |           10.5 ms |                0.9 ms |   12.3x |
-| small    |       20 | heavy         |           44.4 ms |                1.9 ms |   23.5x |
-| medium   |      200 | heavy         |          357.4 ms |               11.4 ms |   31.2x |
-| large    |    2,000 | heavy         |         3,506.0 ms |              118.0 ms |   29.7x |
+| light    |       20 | none          |           11.0 ms |                1.0 ms |   11.1x |
+| small    |       20 | heavy         |           42.6 ms |                1.7 ms |   24.5x |
+| medium   |      200 | heavy         |          361.8 ms |               11.5 ms |   31.4x |
+| large    |    2,000 | heavy         |         3,534.8 ms |              119.6 ms |   29.6x |
 
-Environment: macOS 13.6 (arm64), CPython 3.10.18, kedro 1.5.0,
-omegaconf 2.3.1, PyYAML 6.0.3 (libyaml). 2026-07-02.
+Environment: macOS 13.6 (arm64), CPython 3.10.18, kedro 1.6.0,
+omegaconf 2.3.1, PyYAML 6.0.3 (libyaml). 2026-09-09.
 
 The gap grows with interpolation density: OmegaConf parses every `${...}`
 occurrence through the antlr4 runtime at resolution time, which dominates its
