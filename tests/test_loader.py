@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 
 from deepyaml import (
@@ -326,6 +328,26 @@ class TestGlobals:
         loader = ConfigLoader(src, runtime_params={"x": 1})
         with pytest.raises(InterpolationError, match="not supported for globals"):
             loader["globals"]
+
+    def test_globals_resolve_under_concurrent_access(self, make_conf):
+        # Which globals resolver applies is fixed per `get` call; when it hung
+        # off loader state, one thread loading `globals` could make another's
+        # `${globals:...}` lookup fall back to its default.
+        src = make_conf(
+            {
+                "base": {
+                    "globals.yml": "kind: pandas.CSVDataset\n",
+                    "catalog.yml": "ds:\n  type: ${globals:kind}\n",
+                },
+                "local": {},
+            }
+        )
+        loader = ConfigLoader(src)
+        keys = ["catalog", "globals"] * 100
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(loader.get, keys))
+        assert results[0::2] == [{"ds": {"type": "pandas.CSVDataset"}}] * 100
+        assert results[1::2] == [{"kind": "pandas.CSVDataset"}] * 100
 
     def test_globals_settable(self, make_conf):
         src = make_conf({"base": {"catalog.yml": "a: ${globals:x}\n"}, "local": {}})

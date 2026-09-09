@@ -190,6 +190,19 @@ def _select_or_default(tree: Mapping, dotted: str, default: Any) -> Any:
     return node
 
 
+def _select_global(source: Mapping, variable: str, default: Any) -> Any:
+    if variable.startswith("_"):
+        raise InterpolationError(
+            "Keys starting with '_' are not supported for globals."
+        )
+    value = _select_or_default(source, variable, default)
+    if value is _NO_DEFAULT:
+        raise InterpolationError(
+            f"Globals key '{variable}' not found and no default value provided."
+        )
+    return value
+
+
 def _runtime_params_not_supported(*_args: Any) -> Any:
     raise InterpolationError(
         "The `runtime_params:` resolver is not supported for globals."
@@ -240,7 +253,6 @@ class ConfigLoader:
         self.config_patterns = dict(DEFAULT_CONFIG_PATTERNS)
         self.config_patterns.update(config_patterns or {})
         self._globals: dict | None = None
-        self._loading_globals = False
 
     @property
     def globals(self) -> dict:
@@ -263,24 +275,15 @@ class ConfigLoader:
         resolvers = self._resolver_map(key)
         processed_files: set[Path] = set()
 
-        if key == "globals":
-            self._loading_globals = True
-        try:
-            base_path = self.conf_source / self.base_env
-            config = self._load_dir(
-                base_path, key, patterns, resolvers, processed_files
-            )
+        base_path = self.conf_source / self.base_env
+        config = self._load_dir(base_path, key, patterns, resolvers, processed_files)
 
-            if self.run_env == self.base_env:
-                return self._cache_globals(key, config)
+        if self.run_env == self.base_env:
+            return self._cache_globals(key, config)
 
-            env_path = self.conf_source / self.run_env
-            env_config = self._load_dir(
-                env_path, key, patterns, resolvers, processed_files
-            )
-            config = self._merge_envs(config, env_config, key, env_path)
-        finally:
-            self._loading_globals = False
+        env_path = self.conf_source / self.run_env
+        env_config = self._load_dir(env_path, key, patterns, resolvers, processed_files)
+        config = self._merge_envs(config, env_config, key, env_path)
 
         if not processed_files and key != "globals":
             raise MissingConfigError(
@@ -377,7 +380,13 @@ class ConfigLoader:
 
     def _resolver_map(self, key: str) -> ResolverMap:
         resolvers: ResolverMap = registered_resolvers()
-        resolvers["globals"] = self._globals_resolver
+        # Which variant applies is decided per ``get`` call rather than held as
+        # loader state, so concurrent calls cannot disturb each other.
+        resolvers["globals"] = (
+            self._loading_globals_resolver
+            if key == "globals"
+            else self._globals_resolver
+        )
         resolvers["runtime_params"] = (
             _runtime_params_not_supported
             if key == "globals"
@@ -387,22 +396,14 @@ class ConfigLoader:
         return resolvers
 
     def _globals_resolver(self, variable: str, default: Any = _NO_DEFAULT) -> Any:
-        if variable.startswith("_"):
-            raise InterpolationError(
-                "Keys starting with '_' are not supported for globals."
-            )
-        if self._globals is not None:
-            source = self._globals
-        elif self._loading_globals:
-            source = {}  # globals cannot reference themselves while loading
-        else:
-            source = self.globals  # first use: lazy-load and cache
-        value = _select_or_default(source, variable, default)
-        if value is _NO_DEFAULT:
-            raise InterpolationError(
-                f"Globals key '{variable}' not found and no default value provided."
-            )
-        return value
+        return _select_global(self.globals, variable, default)
+
+    def _loading_globals_resolver(
+        self, variable: str, default: Any = _NO_DEFAULT
+    ) -> Any:
+        # Globals cannot reference themselves while loading, so every lookup
+        # falls back to its default.
+        return _select_global({}, variable, default)
 
     def _runtime_params_resolver(
         self, variable: str, default: Any = _NO_DEFAULT
